@@ -1,0 +1,63 @@
+{
+  pkgs,
+  ...
+}:
+{
+  services.openssh = {
+    enable = true;
+    settings = {
+      PermitRootLogin = "prohibit-password";
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+    };
+  };
+
+  environment.systemPackages = with pkgs; [
+    tpm2-tools
+    binutils
+    lsof
+    # for the rust server debugging
+    evcxr
+    rustup
+    gcc
+    pkg-config
+    protobuf
+    perl
+    gdbHostCpuOnly
+  ];
+
+  # TODO: Offer SSH host keys, otherwise, we lose reproducibility
+
+  networking.firewall.allowedTCPPorts = [
+    22
+  ];
+
+  security.pki.certificates = [
+    # Cloudflare ECC Root CA - https://developers.cloudflare.com/ssl/static/origin_ca_ecc_root.pem
+    ''
+      -----BEGIN CERTIFICATE-----
+      MIICiTCCAi6gAwIBAgIUXZP3MWb8MKwBE1Qbawsp1sfA/Y4wCgYIKoZIzj0EAwIw
+      gY8xCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1T
+      YW4gRnJhbmNpc2NvMRkwFwYDVQQKExBDbG91ZEZsYXJlLCBJbmMuMTgwNgYDVQQL
+      Ey9DbG91ZEZsYXJlIE9yaWdpbiBTU0wgRUNDIENlcnRpZmljYXRlIEF1dGhvcml0
+      eTAeFw0xOTA4MjMyMTA4MDBaFw0yOTA4MTUxNzAwMDBaMIGPMQswCQYDVQQGEwJV
+      UzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZyYW5jaXNjbzEZ
+      MBcGA1UEChMQQ2xvdWRGbGFyZSwgSW5jLjE4MDYGA1UECxMvQ2xvdWRGbGFyZSBP
+      cmlnaW4gU1NMIEVDQyBDZXJ0aWZpY2F0ZSBBdXRob3JpdHkwWTATBgcqhkjOPQIB
+      BggqhkjOPQMBBwNCAASR+sGALuaGshnUbcxKry+0LEXZ4NY6JUAtSeA6g87K3jaA
+      xpIg9G50PokpfWkhbarLfpcZu0UAoYy2su0EhN7wo2YwZDAOBgNVHQ8BAf8EBAMC
+      AQYwEgYDVR0TAQH/BAgwBgEB/wIBAjAdBgNVHQ4EFgQUhTBdOypw1O3VkmcH/es5
+      tBoOOKcwHwYDVR0jBBgwFoAUhTBdOypw1O3VkmcH/es5tBoOOKcwCgYIKoZIzj0E
+      AwIDSQAwRgIhAKilfntP2ILGZjwajktkBtXE1pB4Y/fjAfLkIRUzrI15AiEA5UCL
+      XYZZ9m2c3fKwIenMMojL1eqydsgqj/wK4p5kagQ=
+      -----END CERTIFICATE-----
+    ''
+  ];
+
+  users.users.root = {
+    shell = pkgs.bashInteractive;
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIINMEdCzfidRGxp1xtwGidvqwPMdQAwB3uRTclL771iM evident-owner"
+    ];
+  };
+}
