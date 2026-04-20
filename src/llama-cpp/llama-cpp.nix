@@ -6,7 +6,7 @@ let
   llamaModel = pkgs.fetchurl {
     name = "llama3.1-8b.gguf";
     url = "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/bf5b95e96dac0462e2a09145ec66cae9a3f12067/Meta-Llama-3.1-8B-Instruct-Q6_K_L.gguf";
-    hash = "sha256-9bf5598b3cc6c5804c520aa6349266d2e2c9a22402e157bd9b187dc34806dad6";
+    hash = "sha256-m/VZizzGxYBMUgqmNJJm0uLJoiQC4Ve9mxh9w0gG2tY=";
   };
   localPort = 8080;
   domain = "llama-cpp.joaohs.com";
@@ -57,9 +57,12 @@ in
 
   users.users.${username} = {
     createHome = true;
+    isSystemUser = true;
+    group = "worker";
     home = "/home/${username}";
-    shell = pkgs.nologin;
+    shell = "${pkgs.shadow}/bin/nologin";
   };
+  users.groups.worker = {};
 
   # Configure the llama-cpp server as a systemd service
 
@@ -124,7 +127,6 @@ in
 
   # Ensure nginx starts after llama.cpp
   systemd.services.nginx = {
-    description = "Nginx TLS Reverse Proxy";
     after = [ "llama-cpp.service" "generate-worker-cert.service" ];
     requires = [ "llama-cpp.service" "generate-worker-cert.service" ];
     wantedBy = [ "multi-user.target" ];

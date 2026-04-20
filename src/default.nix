@@ -28,7 +28,7 @@ in
       ./image.nix
       ./dm-verity.nix
       (import ./evident.nix { inherit inputs evidentInstancePackage; })
-      (import ./llama-cpp/llama-cpp.nix { inherit pkgs; })
+      ./llama-cpp/llama-cpp.nix
       ./networking.nix
       "${modulesPath}/image/repart.nix"
       "${modulesPath}/system/boot/uki.nix"
