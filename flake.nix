@@ -5,7 +5,7 @@
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixpkgs-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     evident-instance = {
-      url = "gitlab:dpss-inesc-id/achilles-cvm?dir=instance,ref=dev";
+      url = "gitlab:dpss-inesc-id/achilles-cvm/dev?dir=instance";
       inputs = {
         nixpkgs.follows = "nixpkgs";
       };
@@ -24,7 +24,7 @@
           mkBundle = inputs.evident-instance.apps.x86_64-linux.mkBundle;
         in
         {
-          gce-base = pkgs.callPackage ./src {
+          gce = pkgs.callPackage ./src {
             platform = "gce";
             inherit inputs;
             evidentInstancePackage = mkBundle {
@@ -37,7 +37,7 @@
             };
             withDebug = true;
           };
-          ec2-base = pkgs.callPackage ./src {
+          ec2 = pkgs.callPackage ./src {
             platform = "ec2";
             inputs = inputs;
             evidentInstancePackage = mkBundle {
