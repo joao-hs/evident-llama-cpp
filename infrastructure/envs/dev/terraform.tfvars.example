@@ -1,0 +1,11 @@
+gcp_project       = "<your-project-id>"
+gcp_machine_type             = "n2d-standard-16"
+gce_image_llama_id           = "cvm-llama-cpp"
+gce_image_llama_version_file = "../../uplosi/gcp/image.version"
+gce_llama_count              = 1
+# use default aws_region
+ec2_eip_allocation_id        = "eipalloc-<static-ip-allocation-id>"
+aws_instance_type            = "m6a.8xlarge"
+ec2_image_llama_id           = "cvm-llama-cpp"
+ec2_image_llama_version_file = "../../uplosi/aws/image.version"
+ec2_llama_count              = 1

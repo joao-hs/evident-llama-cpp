@@ -29,7 +29,7 @@ in
       ./image.nix
       ./dm-verity.nix
       (import ./evident.nix { inherit inputs evidentInstancePackage; })
-      ./llama-cpp/llama-cpp.nix { inherit pkgs domain; }
+      (import ./llama-cpp/llama-cpp.nix { inherit pkgs domain; })
       ./networking.nix
       "${modulesPath}/image/repart.nix"
       "${modulesPath}/system/boot/uki.nix"
