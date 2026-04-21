@@ -9,6 +9,7 @@
       PermitRootLogin = "prohibit-password";
       PasswordAuthentication = false;
       KbdInteractiveAuthentication = false;
+      AllowUsers = [ "root" ];
     };
   };
 

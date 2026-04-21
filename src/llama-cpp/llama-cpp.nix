@@ -1,16 +1,17 @@
 {
   pkgs,
+  domain,
   ...
 }:
 let
   llamaModel = pkgs.fetchurl {
-    name = "llama3.1-8b.gguf";
-    url = "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/bf5b95e96dac0462e2a09145ec66cae9a3f12067/Meta-Llama-3.1-8B-Instruct-Q6_K_L.gguf";
-    hash = "sha256-m/VZizzGxYBMUgqmNJJm0uLJoiQC4Ve9mxh9w0gG2tY=";
+    name = "llama-3.1-8b-instruct-q4-k-m.gguf";
+    url = "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/bf5b95e96dac0462e2a09145ec66cae9a3f12067/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf";
+    hash = "sha256-ewZPWEK/lTLJFFbe2iiKG2cjl6VPpymqZllShjAzVXw=";
   };
   localPort = 8080;
-  domain = "llama-cpp.joaohs.com";
   sslCertificatePath = "/etc/evident/pki/instance/public/instance.crt.pem";
+  failoverSslCertificatePath = "/etc/evident/pki/instance/public/instance-root.crt.pem";
   sslCertificateKeyPath = "/etc/evident/pki/instance/private/instance.key.der";
   username = "worker";
 
@@ -20,15 +21,20 @@ let
   workerCsr = "${tlsDir}/worker.csr";
 
   generateWorkerCert = pkgs.writeShellScript "generate-worker-cert" ''
-    set -uo pipefail
-
     CA_CERT="${sslCertificatePath}"
+    if [ ! -f "$CA_CERT" ]; then
+      echo "Using self-signed CA certificate as fallback since $CA_CERT is missing"
+      CA_CERT="${failoverSslCertificatePath}"
+    fi
+
     CA_KEY="${sslCertificateKeyPath}"
     DOMAIN="${domain}"
     OUT_DIR="${tlsDir}"
     WORKER_KEY="${workerKey}"
     WORKER_CSR="${workerCsr}"
     WORKER_CERT="${workerCert}"
+
+    set -uo pipefail
 
     mkdir -p "$OUT_DIR"
 
@@ -49,6 +55,13 @@ let
         -copy_extensions copyall \
         -out "$WORKER_CERT"
 
+    echo >> "$WORKER_CERT"
+    cat "$CA_CERT" >> "$WORKER_CERT"
+    echo >> "$WORKER_CERT"
+
+    chown -R nginx:nginx "$WORKER_KEY" "$WORKER_CERT" "$OUT_DIR"
+    chmod 600 "$WORKER_KEY" "$WORKER_CERT"
+
     rm -f "$WORKER_CSR"
   '';
 in
@@ -56,10 +69,9 @@ in
   # Configure the llama-cpp specific user
 
   users.users.${username} = {
-    createHome = true;
+    createHome = false;
     isSystemUser = true;
     group = "worker";
-    home = "/home/${username}";
     shell = "${pkgs.shadow}/bin/nologin";
   };
   users.groups.worker = {};
@@ -68,8 +80,8 @@ in
 
   systemd.services.generate-worker-cert = {
       description = "Generate TLS worker certificate from root CA";
-      after = [ "evident-keygen.service" ];
-      requires = [ "evident-keygen.service" ];
+      after = [ "evident-keygen.service" "evident-server.service" ];
+      requires = [ "evident-keygen.service" "evident-server.service" ];
       before = [ "nginx.service" ];
       wantedBy = [ "multi-user.target" ];
 

@@ -36,6 +36,7 @@
               certificateIssuerEndpoint = "evident-ca.joaohs.com:5010";
             };
             withDebug = true;
+            domain = "gce-llama-cpp.joaohs.com";
           };
           ec2 = pkgs.callPackage ./src {
             platform = "ec2";
@@ -49,6 +50,7 @@
               certificateIssuerEndpoint = "evident-ca.joaohs.com:5010";
             };
             withDebug = true;
+            domain = "ec2-llama-cpp.joaohs.com";
           };
         };
       };
