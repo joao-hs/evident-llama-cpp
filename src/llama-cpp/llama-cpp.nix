@@ -55,9 +55,7 @@ let
         -copy_extensions copyall \
         -out "$WORKER_CERT"
 
-    echo >> "$WORKER_CERT"
     cat "$CA_CERT" >> "$WORKER_CERT"
-    echo >> "$WORKER_CERT"
 
     chown -R nginx:nginx "$WORKER_KEY" "$WORKER_CERT" "$OUT_DIR"
     chmod 600 "$WORKER_KEY" "$WORKER_CERT"
@@ -80,8 +78,8 @@ in
 
   systemd.services.generate-worker-cert = {
       description = "Generate TLS worker certificate from root CA";
-      after = [ "evident-keygen.service" "evident-server.service" ];
-      requires = [ "evident-keygen.service" "evident-server.service" ];
+      after = [ "evident-server.service" ];
+      requires = [ "evident-server.service" ];
       before = [ "nginx.service" ];
       wantedBy = [ "multi-user.target" ];
 
@@ -96,8 +94,8 @@ in
 
   systemd.services.llama-cpp = {
     description = "LLaMA.cpp Server";
-    after = [ "network.target" "evident-server.service" "evident-keygen.service" ];
-    requires = [ "evident-server.service" "evident-keygen.service" ];
+    after = [ "network.target" "evident-server.service" ];
+    requires = [ "evident-server.service" ];
     wantedBy = [ "multi-user.target" ];
 
     serviceConfig = {
